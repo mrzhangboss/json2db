@@ -8,7 +8,7 @@ from setuptools import Command, setup
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-VERSION = "0.0.2"
+VERSION = "0.0.3"
 REQUIRED = [
 
 ]
