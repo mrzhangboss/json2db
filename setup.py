@@ -62,7 +62,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/mrzhangboss/json2db",
-    py_modules=['json2db'],
+    packages=['json2db'],
     include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
