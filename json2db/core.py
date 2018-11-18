@@ -13,6 +13,10 @@ class FrameworkNotSupport(JException):
     pass
 
 
+class ParseDataError(JException):
+    pass
+
+
 class ColumnFormat:
     DEFAULT = "DEFAULT"  # not change the name of json
     CAMEL = "CAMEL"  # convert it to camel
@@ -64,7 +68,7 @@ class ColumnFormat:
     def __init__(self, fmt: str = DEFAULT):
         self.fmt = fmt
 
-    def get_column(self, v: str, suffix: Optional[str] = None) -> str:
+    def rename(self, v: str, suffix: Optional[str] = None) -> str:
         return ColumnFormat.to_column(value=v, suffix=suffix, fmt=self.fmt)
 
 
@@ -83,19 +87,20 @@ class JModel:
         raise NotImplementedError
 
     @abstractclassmethod
-    def store(cls, *args, data: dict, **kwargs):
+    def store(cls, *args, data: dict, is_press: bool = False, engine: Optional[object] = None, **kwargs):
         raise NotImplementedError
 
     @abstractclassmethod
-    def search(cls, *args, search_args: List[Dict[str, Any]], **kwargs):
+    def search(cls, *args, search_args: List[Dict[str, Any]], limit: int = 1, engine: Optional[object] = None,
+               **kwargs):
         raise NotImplementedError
 
     @abstractclassmethod
-    def create_tables_in_db(cls):
+    def create_tables_in_db(cls, engine: Optional[object] = None):
         raise NotImplementedError
 
     @abstractclassmethod
-    def delete_tables_in_db(cls):
+    def delete_tables_in_db(cls, engine: Optional[object] = None):
         raise NotImplementedError
 
 
@@ -107,13 +112,14 @@ class Factory:
     """
 
     @abstractclassmethod
-    def from_xml(cls, *args, xml: str, **kwargs) -> JModel:
+    def from_xml(cls, *args, xml: str, root_name: str, suffix: Optional[str] = None, **kwargs) -> JModel:
         raise NotImplementedError
 
     @abstractclassmethod
-    def from_json(cls, *args, data: dict, **kwargs) -> JModel:
+    def from_json(cls, *args, data: dict, root_name: str, suffix: Optional[str] = None, **kwargs) -> JModel:
         raise NotImplementedError
 
     @abstractclassmethod
-    def from_cache(cls, *args, data: Union[dict, str], **kwargs) -> JModel:
+    def from_cache(cls, *args, data: Union[dict, str], root_name: str, suffix: Optional[str] = None,
+                   **kwargs) -> JModel:
         raise NotImplementedError

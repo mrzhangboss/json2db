@@ -6,9 +6,11 @@ verify_ssl = true
 [dev-packages]
 twine = "*"
 pytest = "*"
+ipython = "*"
 
 [packages]
 sqlalchemy = "*"
+attrs = "*"
 
 [requires]
 python_version = "3.6"

@@ -31,20 +31,20 @@ def test_to_default():
 
 def test_column_object_camel():
     fmt = ColumnFormat(ColumnFormat.CAMEL)
-    assert fmt.get_column("abcABC") == "abcABC"
-    assert fmt.get_column("abcABC", "id") == "abcABCId"
-    assert fmt.get_column("abc_aBC", "id") == "abcABCId"
+    assert fmt.rename("abcABC") == "abcABC"
+    assert fmt.rename("abcABC", "id") == "abcABCId"
+    assert fmt.rename("abc_aBC", "id") == "abcABCId"
 
 
 def test_column_object_default():
     fmt = ColumnFormat()
-    assert fmt.get_column("abcABC") == "abcABC"
-    assert fmt.get_column("abcABC", "id") == "abcABCid"
-    assert fmt.get_column("abc_aBC", "id") == "abc_aBCid"
+    assert fmt.rename("abcABC") == "abcABC"
+    assert fmt.rename("abcABC", "id") == "abcABCid"
+    assert fmt.rename("abc_aBC", "id") == "abc_aBCid"
 
 
 def test_column_object_underline():
     fmt = ColumnFormat(ColumnFormat.UNDERLINE)
-    assert fmt.get_column("abcABC") == "abc_aBC"
-    assert fmt.get_column("abcABC", "id") == "abc_aBC_id"
-    assert fmt.get_column("abc_aBC", "id") == "abc_a_bC_id"
+    assert fmt.rename("abcABC") == "abc_aBC"
+    assert fmt.rename("abcABC", "id") == "abc_aBC_id"
+    assert fmt.rename("abc_aBC", "id") == "abc_a_bC_id"
