@@ -94,9 +94,6 @@ class CommonModelFactory(Factory):
 
         return CommonModel(*self.args, model=root, factory=self, **self.kwargs)
 
-    def from_xml(self, *args, xml: str, root_name: str, suffix: Optional[str] = None, **kwargs) -> JModel:
-        pass
-
     def add_field(self, k: str, v: Any, comment: Optional[str] = None) -> NodeField:
         node = NodeField(name=k, column=self.fmt.rename(k))
         if comment:
@@ -298,12 +295,15 @@ class CommonModel(JModel):
         obj = self.db_models[model.name]()
         for k, v in model.brothers.items():
             # foreign has same scope with brother
-            new_scope = scope if scope_is_pressed else scope[k]
+            path = k if v.alias is None else v.alias
+            if scope_is_pressed:
+                new_scope = scope if scope_is_pressed else scope[path]
+
             setattr(obj, k, self.init_root(v, new_scope, debug=debug, scope_is_pressed=scope_is_pressed))
 
         for k, v in model.fields.items():
             if scope_is_pressed:
-                path = k
+                path = k if v.alias is None else v.alias
                 is_set = False
                 _scope = scope
                 while _scope:

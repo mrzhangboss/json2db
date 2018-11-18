@@ -112,10 +112,6 @@ class Factory:
     """
 
     @abstractclassmethod
-    def from_xml(cls, *args, xml: str, root_name: str, suffix: Optional[str] = None, **kwargs) -> JModel:
-        raise NotImplementedError
-
-    @abstractclassmethod
     def from_json(cls, *args, data: dict, root_name: str, suffix: Optional[str] = None, **kwargs) -> JModel:
         raise NotImplementedError
 
