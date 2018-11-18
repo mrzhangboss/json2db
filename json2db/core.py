@@ -32,7 +32,7 @@ class ColumnFormat:
         return v[0].lower() + ColumnFormat.__UNDERLINE_PATTERN.sub(lambda x: '_' + x.group().lower(), v[1:])
 
     @classmethod
-    def to_column(cls, value: str, fmt: str, suffix: Optional[str] = None) -> str:
+    def to_column(cls, value: str, fmt: str = DEFAULT, suffix: Optional[str] = None) -> str:
         """suffix the first key must be all lower alpha like id , key .etc
 
         :param value:
@@ -60,6 +60,12 @@ class ColumnFormat:
             if fmt == cls.UNDERLINE:
                 return cls.str2underline(n_value)
             return n_value
+
+    def __init__(self, fmt: str = DEFAULT):
+        self.fmt = fmt
+
+    def get_column(self, v: str, suffix: Optional[str] = None) -> str:
+        return ColumnFormat.to_column(value=v, suffix=suffix, fmt=self.fmt)
 
 
 class JModel:
