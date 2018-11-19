@@ -112,7 +112,8 @@ class Factory:
     """
 
     @abstractclassmethod
-    def from_json(cls, *args, data: dict, root_name: str, suffix: Optional[str] = None, **kwargs) -> JModel:
+    def from_json(cls, *args, data: dict, root_name: str, suffix: Optional[str] = None, max_depth: int = -1,
+                  **kwargs) -> JModel:
         raise NotImplementedError
 
     @abstractclassmethod

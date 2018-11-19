@@ -158,8 +158,8 @@ class CommonModelFactory(Factory):
 
         return root
 
-    def from_json(self, *args, data: dict, root_name: str, suffix: Optional[str] = None, **kwargs) -> JModel:
-        max_depth = -1 if kwargs.get('max_depth') is None else kwargs['max_depth']
+    def from_json(self, *args, data: dict, root_name: str, suffix: Optional[str] = None, max_depth: int = -1,
+                  **kwargs) -> JModel:
 
         root = self.build_root(data, root_name, max_depth, suffix=suffix)
 
