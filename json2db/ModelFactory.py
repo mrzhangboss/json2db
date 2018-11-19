@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import json
+import re
 from datetime import datetime
 from typing import Optional, Union, List, Dict, Any, Tuple
 from sqlalchemy import (String, Text, Integer, BigInteger, Float,
@@ -94,10 +95,27 @@ class CommonModelFactory(Factory):
 
         return CommonModel(*self.args, model=root, factory=self, **self.kwargs)
 
+    ALIAS_PATTERN = re.compile(r"<<([\w_\.]+)")
+
+    def get_alias(self, s: str) -> Optional[str]:
+        """If something like `<<some`
+        this field  alias is some
+
+        :param s:
+        :return:
+        """
+        alias = self.ALIAS_PATTERN.findall(s)
+        if alias:
+            return alias[0]
+
     def add_field(self, k: str, v: Any, comment: Optional[str] = None) -> NodeField:
         node = NodeField(name=k, column=self.fmt.rename(k))
         if comment:
             node.comment = comment
+            alias = self.get_alias(comment)
+            if alias:
+                node.alias = alias
+
         node.real_type = TYPE_NAME[type(v)]
         node.db_type = DB_NAME_TYPE[self.type_map[type(v)]]
         return node
@@ -296,8 +314,7 @@ class CommonModel(JModel):
         for k, v in model.brothers.items():
             # foreign has same scope with brother
             path = k if v.alias is None else v.alias
-            if scope_is_pressed:
-                new_scope = scope if scope_is_pressed else scope[path]
+            new_scope = scope if scope_is_pressed else scope[path]
 
             setattr(obj, k, self.init_root(v, new_scope, debug=debug, scope_is_pressed=scope_is_pressed))
 
@@ -329,7 +346,7 @@ class CommonModel(JModel):
                     else:
                         _scope = _scope[self.FATHER_NAME]
                 if not is_set:
-                    self.set_field(obj, k, _scope[path], None)
+                    self.set_field(obj, k, None, v)
 
             else:
                 self.set_field(obj, k, scope.get(k), v)
@@ -383,8 +400,8 @@ class CommonModel(JModel):
 
     def search(self, *args, search_args: List[Tuple[str, Any]], limit: int = 1, engine: Optional[object] = None,
                **kwargs) -> List:
-        Session = sessionmaker(bind=engine)
-        session = Session()
+        engine = self.engine if engine is None else engine
+        session = sessionmaker(bind=engine)()
         table_name = self.model.name if self.model.alias is None else self.model.alias
         query = session.query(self.db_models[table_name])
         for k, v in search_args:

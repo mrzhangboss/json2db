@@ -60,10 +60,12 @@ class TestCommonModelFactory:
         d = {"aa": 1, "bb": 2, "brother": {"name": "jack", "namess": [{"other": "jack"}]}, 'sons': [{"son_name": "aa"}]}
         factory = CommonModelFactory(is_echo=True, use_foreign_key=False)
         model = factory.from_json(data=d, root_name="data")
-        model.create_tables_in_db(model.engine)
+        model.create_tables_in_db()
         time.sleep(1)
-        model.store(data=d, engine=model.engine)
-        model.store(data=d, is_press=True, engine=model.engine)
+        model.store(data=d)
+        new_d = {"aa": 1, "name": "jack", "namess": [{"other": "jack"}], 'sons': [{"son_name": "aa"}]}
+        model.store(data=new_d, is_press=True)
 
-        assert len(model.search(search_args=[], limit=2, engine=model.engine)) == 2
-        assert len(model.search(search_args=[("aa", 1)], limit=2, engine=model.engine)) == 2
+        assert len(model.search(search_args=[], limit=2)) == 2
+        assert len(model.search(search_args=[("aa", 1)], limit=2)) == 2
+        assert len(model.search(search_args=[("bb", None)], limit=2)) == 1
