@@ -71,7 +71,7 @@ setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.6.0",
-    requires=REQUIRED,
+    install_requires=REQUIRED,
     cmdclass={
         'upload': UploadCommand,
     },
