@@ -69,3 +69,17 @@ class TestCommonModelFactory:
         assert len(model.search(search_args=[], limit=2)) == 2
         assert len(model.search(search_args=[("aa", 1)], limit=2)) == 2
         assert len(model.search(search_args=[("bb", None)], limit=2)) == 1
+
+    def test_alia_table(self):
+        d = {"aa": 1, "bbb": {":<<bb": 2}, "brother": {"name": "jack", "namess": [{"other": "jack"}]},
+             'sons': [{"son_name": "aa"}]}
+        factory = CommonModelFactory(is_echo=True, use_foreign_key=False)
+        model = factory.from_json(data=d, root_name="data")
+        model.create_tables_in_db()
+        time.sleep(1)
+        new_d = {"aa": 1, "name": "jack", "bb": 2, "namess": [{"other": "jack"}], 'sons': [{"son_name": "aa"}]}
+        model.store(data=new_d, is_press=True)
+
+        assert len(model.search(search_args=[])) == 1
+        assert len(model.search(search_args=[("aa", 1)])) == 1
+        assert len(model.search(search_args=[("bbb", 2)])) == 1
