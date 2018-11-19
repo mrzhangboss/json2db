@@ -59,6 +59,19 @@ DB_TYPE_NAME = {
     "Enum": Enum, "ARRAY": ARRAY, "JSON": JSON
 
 }
+from datetime import datetime, date
+
+PYTHON_TYPE_NAME = {
+    "INT": int, "CHAR": chr, "VARCHAR": str, "NCHAR": str, "NVARCHAR": str, "TEXT": str, "Text": str,
+    "FLOAT": float, "NUMERIC": float, "REAL": None, "DECIMAL": float, "TIMESTAMP": datetime, "DATETIME": datetime,
+    "CLOB": None, "BLOB": bytes, "BINARY": bytes, "VARBINARY": bytes, "BOOLEAN": bool, "Boolean": bool, "BIGINT": int,
+    "SMALLINT": int, "INTEGER": int, "DATE": date, "TIME": datetime, "String": str, "Integer": int,
+    "SmallInteger": int, "BigInteger": int,
+    "LargeBinary": int, "Binary": bytes, "Unicode": str,
+    "UnicodeText": str, "PickleType": None, "Interval": None,
+    "Enum": None, "ARRAY": None, "JSON": None
+
+}
 
 DB_NAME_TYPE = {v: k for k, v in DB_TYPE_NAME.items()}
 

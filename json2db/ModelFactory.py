@@ -13,8 +13,8 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from .core import JModel, Factory, ColumnFormat, FrameworkNotSupport, ParseDataError
 from . import config
-from .types import DB_TYPE_NAME, DB_NAME_TYPE, NAME_TYPE, TYPE_NAME
-
+from .types import DB_TYPE_NAME, DB_NAME_TYPE, NAME_TYPE, TYPE_NAME, PYTHON_TYPE_NAME
+from .converter import converter
 import attr
 
 
@@ -303,8 +303,12 @@ class CommonModel(JModel):
             # Not add datetime it will create by default
             return
         # Add Type Convert
-
-        new_value = value
+        current_type = type(value)
+        need_type = PYTHON_TYPE_NAME[field.db_type]
+        if current_type == need_type:
+            new_value = value
+        else:
+            new_value = converter(current_type, need_type, value)
         setattr(obj, name, new_value)
 
     def init_root(self, model: RootModel, scope: dict,
@@ -409,7 +413,7 @@ class CommonModel(JModel):
             tb_name = table_name if len(s) == 1 else s[-2]
             tb_attr = s[-1]
             query = query.filter(getattr(self.db_models[tb_name], tb_attr) == v)
-        print("total query", query.count())
+        # print("total query", query.count())
         query = query.order_by(getattr(self.db_models[table_name], self.factory.primary_key).desc()).limit(limit)
         rlt = []
         for d in query.all():

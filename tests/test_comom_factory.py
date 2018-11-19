@@ -83,3 +83,12 @@ class TestCommonModelFactory:
         assert len(model.search(search_args=[])) == 1
         assert len(model.search(search_args=[("aa", 1)])) == 1
         assert len(model.search(search_args=[("bbb", 2)])) == 1
+
+    def test_type_convert(self):
+        d = {"aa": 1, "bb": 2, "brother": {"name": "jack"}}
+        factory = CommonModelFactory(is_echo=True, use_foreign_key=True)
+        model = factory.from_json(data=d, root_name="data")
+        model.create_tables_in_db()
+        new_d = {"aa": '111', "name": "jack", "bb": 2, "namess": [{"other": "jack"}], 'sons': [{"son_name": "aa"}]}
+        model.store(data=new_d, is_press=True)
+        assert len(model.search(search_args=[("aa", 111)])) == 1
