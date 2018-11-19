@@ -32,32 +32,28 @@ class TestCommonModelFactory:
         new_model = factory.from_cache(data=cache, root_name='data')
         assert len(models.model.brothers) == 1
 
-    @pytest.mark.skip
     def test_create_all_table(self):
         d = {"aa": 1, "bb": 2, "brother": {"name": "jack"}}
-        factory = CommonModelFactory(is_echo=True)
+        factory = CommonModelFactory(is_echo=False)
         model = factory.from_json(data=d, root_name="data")
         model.create_tables_in_db()
 
-    @pytest.mark.skip
     def test_create_all_table_with_foreign_key(self):
         d = {"aa": 1, "bb": 2, "brother": {"name": "jack"}}
-        factory = CommonModelFactory(is_echo=True, use_foreign_key=True)
+        factory = CommonModelFactory(is_echo=False, use_foreign_key=True)
         model = factory.from_json(data=d, root_name="data")
         model.create_tables_in_db()
         model.delete_tables_in_db()
 
-    @pytest.mark.skip
     def test_drop_all_table_with_foreign_key(self):
         d = {"aa": 1, "bb": 2, "brother": {"name": "jack"}}
-        factory = CommonModelFactory(is_echo=True, use_foreign_key=True)
+        factory = CommonModelFactory(is_echo=False, use_foreign_key=True)
         model = factory.from_json(data=d, root_name="data")
         model.delete_tables_in_db()
 
-    @pytest.mark.skip
     def test_store_data_search(self):
         d = {"aa": 1, "bb": 2, "brother": {"name": "jack", "namess": [{"other": "jack"}]}, 'sons': [{"son_name": "aa"}]}
-        factory = CommonModelFactory(is_echo=True, use_foreign_key=False)
+        factory = CommonModelFactory(is_echo=False, use_foreign_key=False)
         model = factory.from_json(data=d, root_name="data")
         model.create_tables_in_db()
         time.sleep(1)
@@ -69,11 +65,10 @@ class TestCommonModelFactory:
         assert len(model.search(search_args=[("aa", 1)], limit=2)) == 2
         assert len(model.search(search_args=[("bb", None)], limit=2)) == 1
 
-    @pytest.mark.skip
     def test_alia_table(self):
         d = {"aa": 1, "bbb": {":<<bb": 2}, "brother": {"name": "jack", "namess": [{"other": "jack"}]},
              'sons': [{"son_name": "aa"}]}
-        factory = CommonModelFactory(is_echo=True, use_foreign_key=False)
+        factory = CommonModelFactory(is_echo=False, use_foreign_key=False)
         model = factory.from_json(data=d, root_name="data")
         model.create_tables_in_db()
         time.sleep(1)
@@ -84,10 +79,9 @@ class TestCommonModelFactory:
         assert len(model.search(search_args=[("aa", 1)])) == 1
         assert len(model.search(search_args=[("bbb", 2)])) == 1
 
-    @pytest.mark.skip
     def test_type_convert(self):
         d = {"aa": 1, "bb": 2, "brother": {"name": "jack"}}
-        factory = CommonModelFactory(is_echo=True, use_foreign_key=True)
+        factory = CommonModelFactory(is_echo=False, use_foreign_key=True)
         model = factory.from_json(data=d, root_name="data")
         model.create_tables_in_db()
         new_d = {"aa": '111', "name": "jack", "bb": 2, "namess": [{"other": "jack"}], 'sons': [{"son_name": "aa"}]}
@@ -95,7 +89,16 @@ class TestCommonModelFactory:
         assert len(model.search(search_args=[("aa", 111)])) == 1
 
     def test_issues4_foreign_key(self):
-        factory = CommonModelFactory(use_foreign_key=True, column_fmt="UNDERLINE")
+        factory = CommonModelFactory(use_foreign_key=True, column_fmt="UNDERLINE", is_echo=False)
 
         model = factory.from_json(data={"aaBbb": {"nameNN": "example"}}, root_name="data")
         model.create_tables_in_db()
+
+    def test_max_depth(self):
+        factory = CommonModelFactory(use_foreign_key=True, column_fmt="UNDERLINE", is_echo=True)
+        d = {"aaBbb": {"nameNN": "example"}}
+        model = factory.from_json(data=d, root_name="data", max_depth=0)
+        model.create_tables_in_db()
+        model.store(data=d)
+        ## TODO: consider need support max_depth = 0 when data is pressed
+        model.store(data=d, is_press=True)
