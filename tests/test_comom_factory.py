@@ -54,8 +54,7 @@ class TestCommonModelFactory:
         model = factory.from_json(data=d, root_name="data")
         model.delete_tables_in_db()
 
-    # @pytest.mark.skip
-
+    @pytest.mark.skip
     def test_store_data_search(self):
         d = {"aa": 1, "bb": 2, "brother": {"name": "jack", "namess": [{"other": "jack"}]}, 'sons': [{"son_name": "aa"}]}
         factory = CommonModelFactory(is_echo=True, use_foreign_key=False)
@@ -70,6 +69,7 @@ class TestCommonModelFactory:
         assert len(model.search(search_args=[("aa", 1)], limit=2)) == 2
         assert len(model.search(search_args=[("bb", None)], limit=2)) == 1
 
+    @pytest.mark.skip
     def test_alia_table(self):
         d = {"aa": 1, "bbb": {":<<bb": 2}, "brother": {"name": "jack", "namess": [{"other": "jack"}]},
              'sons': [{"son_name": "aa"}]}
@@ -84,6 +84,7 @@ class TestCommonModelFactory:
         assert len(model.search(search_args=[("aa", 1)])) == 1
         assert len(model.search(search_args=[("bbb", 2)])) == 1
 
+    @pytest.mark.skip
     def test_type_convert(self):
         d = {"aa": 1, "bb": 2, "brother": {"name": "jack"}}
         factory = CommonModelFactory(is_echo=True, use_foreign_key=True)
@@ -92,3 +93,9 @@ class TestCommonModelFactory:
         new_d = {"aa": '111', "name": "jack", "bb": 2, "namess": [{"other": "jack"}], 'sons': [{"son_name": "aa"}]}
         model.store(data=new_d, is_press=True)
         assert len(model.search(search_args=[("aa", 111)])) == 1
+
+    def test_issues4_foreign_key(self):
+        factory = CommonModelFactory(use_foreign_key=True, column_fmt="UNDERLINE")
+
+        model = factory.from_json(data={"aaBbb": {"nameNN": "example"}}, root_name="data")
+        model.create_tables_in_db()

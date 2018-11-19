@@ -460,7 +460,8 @@ class CommonModel(JModel):
         f = self.factory
         args = [self.foreign_column_name(name), self.factory.primary_type]
         if use_foreign_key:
-            args.append(ForeignKey(f"{name}.{f.primary_key}"))
+            fn, pk = f.fmt.rename(name), f.primary_key
+            args.append(ForeignKey(f"{fn}.{pk}"))
 
         return Column(*args)
 
