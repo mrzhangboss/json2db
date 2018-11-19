@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+import warnings
 import json
 import re
 from datetime import datetime
@@ -89,7 +90,7 @@ class CommonModelFactory(Factory):
 
     def _build_models(self, root: RootModel) -> JModel:
         if self.add_time_col and self.time_col_name in root.fields:
-            raise FrameworkNotSupport(
+            warnings.warn(
                 f"In table {root.name} field {self.time_col_name} is same as the default timestamp key,"
                 f" please delete it or use other key as time_col_name")
 
