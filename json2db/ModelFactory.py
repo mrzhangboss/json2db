@@ -52,7 +52,7 @@ class CommonModelFactory(Factory):
                  use_foreign_key: bool = False,
                  ignore_head: str = ':',
                  add_time_col: bool = True,
-                 time_col_name: str = 'gmt_time',
+                 time_col_name: str = 'gmt_create',
                  table_args: Optional[Dict] = None,
                  is_echo: bool = False,
                  str2col: Union[TypeEngine, VisitableType] = Text,
@@ -516,7 +516,7 @@ class CommonModel(JModel):
         if self._db_models is None:
             self._db_models = {}
 
-            self.init_one_model(self.model, self.factory.use_foreign_key)
+            self.init_one_model(self.model, self.factory.use_foreign_key, add_time_col=self.factory.add_time_col)
 
     @property
     def db_models(self):
