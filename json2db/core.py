@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 import re
-from typing import Optional, Union, List, Dict, Any
+from typing import Optional, Union, List, Dict, Any, Tuple
 from abc import abstractclassmethod
 
 
@@ -91,7 +91,7 @@ class JModel:
         raise NotImplementedError
 
     @abstractclassmethod
-    def search(cls, *args, search_args: List[Dict[str, Any]], limit: int = 1, engine: Optional[object] = None,
+    def search(cls, *args, search_args: List[Tuple[str, Any]], limit: int = 1, engine: Optional[object] = None,
                **kwargs):
         raise NotImplementedError
 
