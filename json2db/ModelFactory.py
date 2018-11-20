@@ -464,6 +464,9 @@ class CommonModel(JModel):
                       )
 
     def get_column(self, field: NodeField) -> Column:
+        if field.name == self.factory.time_col_name:
+            # if field name is same as time_col_name set this field default is Now
+            return self._get_column(self.factory.time_col_name, DateTime, datetime.now)
         type_ = self.factory.type_helper.get_column(field.db_type)
         return self._get_column(
             name=field.column,
