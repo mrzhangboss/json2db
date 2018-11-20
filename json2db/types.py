@@ -128,9 +128,19 @@ class DBType:
             raise FrameworkNotSupport("{} database not support "
                                       "All supported DB are {}".format(name, str(_SUPPORT_DBS.keys())))
         self.name = name
+        self.type_names = _SUPPORT_DBS[name]
         self.types = {v: k for k, v in _SUPPORT_DBS[name].items()}
 
     def get_column(self, type_name: str) -> Union[TypeEngine, VisitableType]:
+        # Do Some check when user choose their own database
+        real_type = type_name.split('(', 1)[0].strip()
+        if real_type not in self.type_names:
+            if real_type.upper() not in self.type_names:
+                raise FrameworkNotSupport(f"{type_name} not support in {self.name} database"
+                                          f"Please defined your choose databae xxx2col fields")
+            else:
+                # Try upper all type name
+                type_name = type_name.upper()
         try:
             return eval(type_name, _SUPPORT_DBS[self.name])
         except NameError as e:

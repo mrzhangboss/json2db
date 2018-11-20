@@ -56,11 +56,11 @@ class CommonModelFactory(Factory):
                  time_col_name: str = 'gmt_create',
                  table_args: Optional[Dict] = None,
                  is_echo: bool = False,
-                 str2col: Union[TypeEngine, VisitableType, str] = Text,
-                 int2col: Union[TypeEngine, VisitableType, str] = Integer,
-                 float2col: Union[TypeEngine, VisitableType, str] = Float,
-                 bool2col: Union[TypeEngine, VisitableType, str] = Boolean,
-                 date2col: Union[TypeEngine, VisitableType, str] = DateTime, **kwargs):
+                 str2col: Union[TypeEngine, VisitableType, str] = 'Text',
+                 int2col: Union[TypeEngine, VisitableType, str] = 'Integer',
+                 float2col: Union[TypeEngine, VisitableType, str] = 'Float',
+                 bool2col: Union[TypeEngine, VisitableType, str] = 'Boolean',
+                 date2col: Union[TypeEngine, VisitableType, str] = 'DateTime', **kwargs):
         """
 
         :param args:
@@ -125,6 +125,8 @@ class CommonModelFactory(Factory):
         convert_type = self.type_map[type(v)]
         if isinstance(convert_type, str):
             # Do a test
+            if convert_type == 'Boolean':
+                print(convert_type)
             self.type_helper.get_column(convert_type)
             node.db_type = convert_type
         elif isinstance(convert_type, VisitableType):
