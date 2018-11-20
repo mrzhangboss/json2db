@@ -213,6 +213,7 @@ class CommonModel(JModel):
         self.pk = self.factory.primary_key
         self.type_helper = self.factory.type_helper
 
+
     @property
     def engine(self):
         if hasattr(self, '_engine'):
@@ -314,8 +315,6 @@ class CommonModel(JModel):
     def set_field(self, obj: Any, name: str, value: Any, field: NodeField):
         # TODO: add type convert
         if value is None and field.nullable:
-            if field.default is not None:
-                setattr(obj, name, field.default)
             return
         fct = self.factory
         if fct.fmt.rename(field.name) == fct.add_time_col and not isinstance(value, datetime):
