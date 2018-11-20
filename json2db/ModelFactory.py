@@ -489,9 +489,10 @@ class CommonModel(JModel):
         cols = dict()
         cols['__tablename__'] = model.table_name
         cols['__table_args__'] = factory.table_args
+        cols[factory.primary_key] = self.get_primary_row()
+
         for k, v in model.fields.items():
             cols[k] = self.get_column(v)
-        cols[factory.primary_key] = self.get_primary_row()
 
         for k, v in model.brothers.items():
             self.init_one_model(v, use_foreign_key)
