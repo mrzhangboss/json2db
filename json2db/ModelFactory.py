@@ -14,7 +14,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from .core import JModel, Factory, ColumnFormat, FrameworkNotSupport, ParseDataError
 from . import config
-from .types import DB_TYPE_NAME, DB_NAME_TYPE, NAME_TYPE, TYPE_NAME, PYTHON_TYPE_NAME
+from .types import NAME_TYPE, TYPE_NAME, PYTHON_TYPE_NAME, DBType
 from .converter import converter
 import attr
 
@@ -30,7 +30,6 @@ class NodeField:
     nullable: bool = True
     default: Optional[Any] = None
     unique: Optional[bool] = None
-    length: List[int] = attr.Factory(list)
 
 
 @attr.s(auto_attribs=True)
@@ -46,6 +45,7 @@ class RootModel:
 
 class CommonModelFactory(Factory):
     def __init__(self, *args, default_db_url: Optional[str] = None,
+                 database: str = 'default',
                  primary_key: str = 'id',
                  primary_type: Union[TypeEngine, VisitableType] = Integer,
                  column_fmt: str = ColumnFormat.DEFAULT,
@@ -56,11 +56,11 @@ class CommonModelFactory(Factory):
                  time_col_name: str = 'gmt_create',
                  table_args: Optional[Dict] = None,
                  is_echo: bool = False,
-                 str2col: Union[TypeEngine, VisitableType] = Text,
-                 int2col: Union[TypeEngine, VisitableType] = Integer,
-                 float2col: Union[TypeEngine, VisitableType] = Float,
-                 bool2col: Union[TypeEngine, VisitableType] = Boolean,
-                 date2col: Union[TypeEngine, VisitableType] = DateTime, **kwargs):
+                 str2col: Union[TypeEngine, VisitableType, str] = Text,
+                 int2col: Union[TypeEngine, VisitableType, str] = Integer,
+                 float2col: Union[TypeEngine, VisitableType, str] = Float,
+                 bool2col: Union[TypeEngine, VisitableType, str] = Boolean,
+                 date2col: Union[TypeEngine, VisitableType, str] = DateTime, **kwargs):
         """
 
         :param args:
@@ -87,6 +87,7 @@ class CommonModelFactory(Factory):
         self.ignore_head = ignore_head
         self.args = args
         self.kwargs = kwargs
+        self.type_helper = DBType(database)
 
     def _build_models(self, root: RootModel) -> JModel:
         if self.add_time_col and self.time_col_name in root.fields:
@@ -96,7 +97,7 @@ class CommonModelFactory(Factory):
 
         return CommonModel(*self.args, model=root, factory=self, **self.kwargs)
 
-    ALIAS_PATTERN = re.compile(r"<<([\w_\.]+)")
+    ALIAS_PATTERN = re.compile(r"<<([\w_.]+)")
 
     def get_alias(self, s: str) -> Optional[str]:
         """If something like `<<some`
@@ -121,7 +122,16 @@ class CommonModelFactory(Factory):
             node.comment = f"eg: {v}"
 
         node.real_type = TYPE_NAME[type(v)]
-        node.db_type = DB_NAME_TYPE[self.type_map[type(v)]]
+        convert_type = self.type_map[type(v)]
+        if isinstance(convert_type, str):
+            # Do a test
+            self.type_helper.get_column(convert_type)
+            node.db_type = convert_type
+        elif isinstance(convert_type, VisitableType):
+            node.db_type = self.type_helper.get_name(convert_type)
+        else:
+            assert isinstance(convert_type, TypeEngine)
+            node.db_type = str(convert_type)
         return node
 
     def build_root(self, template: dict, name: str, max_depth: int, suffix: Optional[str] = None,
@@ -199,6 +209,8 @@ class CommonModel(JModel):
         self._db_models = None
         self.Base = declarative_base()
         self.pk = self.factory.primary_key
+        self.type_helper = self.factory.type_helper
+
 
     @property
     def engine(self):
@@ -308,7 +320,12 @@ class CommonModel(JModel):
             return
         # Add Type Convert
         current_type = type(value)
-        need_type = PYTHON_TYPE_NAME[field.db_type]
+        db_type = self.type_helper.get_column(field.db_type)
+        if isinstance(db_type, TypeEngine):
+            # some type like VARCHAR(1000)
+            db_type = type(db_type)
+        db_type_name = self.type_helper.get_name(db_type)
+        need_type = PYTHON_TYPE_NAME[db_type_name]
         if current_type == need_type:
             new_value = value
         else:
@@ -336,16 +353,16 @@ class CommonModel(JModel):
 
                         if isinstance(_scope[path], tuple):
                             if debug:
-                                raise ParseDataError(f"Columns Name {name} in {table_name} Conflict in {_scope[path]}")
+                                raise ParseDataError(f"Columns Name {path} in {model.name} Conflict in {_scope[path]}")
                             else:
-                                print(f"Columns Name {name} in {table_name} Conflict in {_scope[path]}")
+                                print(f"Columns Name {path} in {model.name} Conflict in {_scope[path]}")
                                 full_name = model.name + '.' + path
                                 if full_name in _scope:
                                     is_set = True
                                     self.set_field(obj, k, _scope[full_name], v)
                                     break
                                 else:
-                                    raise ParseDataError(f"Columns Name not find in {table_name} {full_name}")
+                                    raise ParseDataError(f"Columns Name not find in {model.name} {full_name}")
 
                         else:
                             is_set = True
@@ -444,9 +461,7 @@ class CommonModel(JModel):
                       )
 
     def get_column(self, field: NodeField) -> Column:
-        type_ = DB_TYPE_NAME[field.db_type]
-        if field.length:
-            type_ = type_(*field.length)
+        type_ = self.factory.type_helper.get_column(field.db_type)
         return self._get_column(
             name=field.column,
             type_=type_,

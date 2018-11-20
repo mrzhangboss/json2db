@@ -95,10 +95,27 @@ class TestCommonModelFactory:
         model.create_tables_in_db()
 
     def test_max_depth(self):
-        factory = CommonModelFactory(use_foreign_key=True, column_fmt="UNDERLINE", is_echo=True)
+        factory = CommonModelFactory(use_foreign_key=True, column_fmt="UNDERLINE", is_echo=False)
         d = {"aaBbb": {"nameNN": "example"}}
         model = factory.from_json(data=d, root_name="data", max_depth=0)
         model.create_tables_in_db()
         model.store(data=d)
         ## TODO: consider need support max_depth = 0 when data is pressed
         model.store(data=d, is_press=True)
+
+    TEST_DATA = [
+        {"aaBbb": {"nameNN": "example"}},
+        {"aa": '111', "name": "jack", "bb": 2, "namess": [{"other": "jack"}], 'sons': [{"son_name": "aa"}]},
+        {"aa": 1, "bb": 2, "brother": {"name": "jack"}},
+        {"aa": 1.0, "bb": 2, "brother": {"name": "jack"}}
+    ]
+
+    def test_use_str_as_db_type(self):
+        factory = CommonModelFactory(use_foreign_key=True, column_fmt="UNDERLINE", is_echo=True,
+                                     str2col='VARCHAR(1000)', database='sqlite',
+                                     int2col='INTEGER',
+                                     float2col='DECIMAL(10,2)')
+        for d in self.TEST_DATA:
+            model = factory.from_json(data=d, root_name="data", max_depth=0)
+            model.create_tables_in_db()
+            model.store(data=d)
