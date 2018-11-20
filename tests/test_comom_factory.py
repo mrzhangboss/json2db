@@ -104,14 +104,16 @@ class TestCommonModelFactory:
         model.store(data=d, is_press=True)
 
     TEST_DATA = [
+        {"aa": 1.0, "bb": True, "brother": {"name": "jack"}},
+
         {"aaBbb": {"nameNN": "example"}},
         {"aa": '111', "name": "jack", "bb": 2, "namess": [{"other": "jack"}], 'sons': [{"son_name": "aa"}]},
         {"aa": 1, "bb": 2, "brother": {"name": "jack"}},
-        {"aa": 1.0, "bb": 2, "brother": {"name": "jack"}}
+        {"aa": 1.0, "bb": 2, "brother": {"name": "jack"}},
     ]
 
     def test_use_str_as_db_type(self):
-        factory = CommonModelFactory(use_foreign_key=True, column_fmt="UNDERLINE", is_echo=True,
+        factory = CommonModelFactory(use_foreign_key=True, column_fmt="UNDERLINE", is_echo=False,
                                      str2col='VARCHAR(1000)', database='sqlite',
                                      int2col='INTEGER',
                                      float2col='DECIMAL(10,2)')
