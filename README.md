@@ -11,7 +11,22 @@ Although NoSQL Database like MongoDB is popular, we still need SQL DataBase for 
 so this module is helping us store json to database, and help us build them in  db.
 
 
-## Feture
+## Feature
+
+- support mostly common database (`MySQL`, `PostgreSQL`, `MSSQL`, `SQLite`),
+
+just set `database` like
+
+    JFactory(database='mysql')
+    
+See more in [types](json2db/types.py)
+
+You can set `str2col` control Database Column Type like `Text` or `VARCHAR` and other.You can see more
+example in [tests/test_comom_factory.py](tests/test_comom_factory.py)
+
+
+ 
+
 
 - Support Different Style of database column
 
@@ -24,8 +39,6 @@ If you want your db column to be `someThing` style, use `ColumnFormat.CAMEL`
 
 Default we do nothing as the json format.
 
-- Support Control the Table Column, just set `int2col` `float2col` `str2col` ... from `sqlalchemy sql type`
-
 
 - Support Add a TimeStamp for your first table
 
@@ -35,7 +48,7 @@ Default we do nothing as the json format.
 
 Just Use `{"field": {":my comment": "real value"}}`, it can take the `my comment` to this `field`
 
-- Support Control the max_depth of your table
+- Support Control the `max_depth` of your json table
 
 PS: min is `0` which meaning it only one table for all json
 
@@ -69,6 +82,4 @@ See more sample please see [tests](tests)
  The `db_url` format please see more detail see [https://docs.sqlalchemy.org/en/latest/core/engines.html](https://docs.sqlalchemy.org/en/latest/core/engines.html)
  
  
-# TODO:
 
-- add model migration
