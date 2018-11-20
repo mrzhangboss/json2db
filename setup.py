@@ -10,7 +10,7 @@ with open("README.md", "r") as fh:
 
 VERSION = "2.0.0"
 REQUIRED = [
-    "sqlalchemy", "attrs"
+    "sqlalchemy", "attrs", "python-dateutil"
 
 ]
 
