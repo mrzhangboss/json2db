@@ -116,6 +116,9 @@ class CommonModelFactory(Factory):
             alias = self.get_alias(comment)
             if alias:
                 node.alias = alias
+        else:
+            # add value as part of comment
+            node.comment = f"eg: {v}"
 
         node.real_type = TYPE_NAME[type(v)]
         node.db_type = DB_NAME_TYPE[self.type_map[type(v)]]
