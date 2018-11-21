@@ -554,6 +554,9 @@ class CommonModel(JModel):
             cols[k] = self.add_relationship(k, model.name, user_foreign_key=use_foreign_key, owed=False)
 
         table = type(model.name, (self.Base,), cols)
+        if model.comment:
+            tab = self.Base.metadata.tables[model.table_name]
+            tab.comment = model.comment
         self._db_models[model.name] = table
         self._model[model.name] = model
 
