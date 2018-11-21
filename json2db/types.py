@@ -39,7 +39,10 @@ MYSQL_DB_TYPE_SCOPE = {"BIGINT": mysql.BIGINT, "BINARY": mysql.BINARY, "BIT": my
                        "SMALLINT": mysql.SMALLINT, "REAL": mysql.REAL, "TEXT": mysql.TEXT, "TIME": mysql.TIME,
                        "TIMESTAMP": mysql.TIMESTAMP, "TINYBLOB": mysql.TINYBLOB, "TINYINT": mysql.TINYINT,
                        "TINYTEXT": mysql.TINYTEXT, "VARBINARY": mysql.VARBINARY, "VARCHAR": mysql.VARCHAR,
-                       "YEAR": mysql.YEAR}
+                       "YEAR": mysql.YEAR,
+                       # Alias
+                       "INT": mysql.INTEGER
+                       }
 
 from sqlalchemy.dialects import oracle
 
