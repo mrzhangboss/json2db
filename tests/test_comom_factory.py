@@ -144,3 +144,19 @@ class TestCommonModelFactory:
         brother.fields['name'].name = "name"
         assert len(model.search(search_args=[("brother_new_name.new_name", "jack")])) == 1
 
+    def test_add_table_comment(self):
+        ## PS: if you want to run this test please set your default_db_url (sqlite not support comment)
+        factory = CommonModelFactory(use_foreign_key=True, column_fmt="UNDERLINE", is_echo=True,
+                                     str2col='VARCHAR(1000)', database='sqlite',
+                                     int2col='INTEGER',
+                                     float2col='DECIMAL(10,2)',
+                                     default_db_url="mysql+mysqldb://root:yourpassword@127.0.0.1/test?charset=utf8")
+        d = {"aa": 1.0, "bb": 2, "brother": {"name": "jack"}}
+
+        model = factory.from_json(data=d, root_name='jackLove')
+        models = model.model
+        models.comment = "Test Comment ADD IN DB"
+
+        model.create_tables_in_db()
+        model.store(data=d)
+        model.delete_tables_in_db()
