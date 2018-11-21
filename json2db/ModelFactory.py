@@ -207,6 +207,7 @@ class CommonModel(JModel):
                  factory: CommonModelFactory,
                  **kwargs):
         self.model = model
+        self._model = {}
         self.factory = factory
         self._db_models = None
         self.Base = declarative_base()
@@ -426,16 +427,33 @@ class CommonModel(JModel):
 
         return d
 
+    def get_search_table(self, name: str) -> str:
+        if name in self._model:
+            return name
+        for k, v in self._model.items():
+            if v.alias == name:
+                return k
+        raise ParseDataError(f"Search args Error, table {name} not find")
+
+    def get_search_field(self, model_name: str, field_name: str) -> str:
+        fields = self._model[model_name].fields
+        if field_name in fields:
+            return field_name
+        for k, v in fields.items():
+            if v.alias == field_name:
+                return k
+        raise ParseDataError(f"Search args Error, table {model_name} {field_name} not find")
+
     def search(self, *args, search_args: List[Tuple[str, Any]], limit: int = 1, engine: Optional[object] = None,
                **kwargs) -> List:
         engine = self.engine if engine is None else engine
         session = sessionmaker(bind=engine)()
-        table_name = self.model.name if self.model.alias is None else self.model.alias
+        table_name = self.model.name
         query = session.query(self.db_models[table_name])
         for k, v in search_args:
             s = k.split('.')
-            tb_name = table_name if len(s) == 1 else s[-2]
-            tb_attr = s[-1]
+            tb_name = table_name if len(s) == 1 else self.get_search_table(s[-2])
+            tb_attr = self.get_search_field(tb_name, s[-1])
             query = query.filter(getattr(self.db_models[tb_name], tb_attr) == v)
         # print("total query", query.count())
         query = query.order_by(getattr(self.db_models[table_name], self.factory.primary_key).desc()).limit(limit)
@@ -537,6 +555,7 @@ class CommonModel(JModel):
 
         table = type(model.name, (self.Base,), cols)
         self._db_models[model.name] = table
+        self._model[model.name] = model
 
     def init_all_models(self):
         if self._db_models is None:

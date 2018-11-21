@@ -121,3 +121,26 @@ class TestCommonModelFactory:
             model = factory.from_json(data=d, root_name="data", max_depth=0)
             model.create_tables_in_db()
             model.store(data=d)
+
+    TEST_ALIAS_DATA = [
+
+    ]
+
+    def test_alias_model(self):
+        factory = CommonModelFactory(use_foreign_key=True, column_fmt="UNDERLINE", is_echo=False,
+                                     str2col='VARCHAR(1000)', database='sqlite',
+                                     int2col='INTEGER',
+                                     float2col='DECIMAL(10,2)')
+        d = {"aa": 1.0, "bb": 2, "brother": {"name": "jack"}}
+
+        model = factory.from_json(data=d, root_name='jackLove')
+        model.create_tables_in_db()
+        model.store(data=d)
+        models = model.model
+        models.alias = "newJack"
+        brother = models.brothers['brother']
+        brother.alias = "brother_new_name"
+        brother.fields['name'].alias = "new_name"
+        brother.fields['name'].name = "name"
+        assert len(model.search(search_args=[("brother_new_name.new_name", "jack")])) == 1
+
