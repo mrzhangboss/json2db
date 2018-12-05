@@ -411,6 +411,14 @@ class CommonModel(JModel):
         session.add(root)
         session.commit()
 
+    def convert(self, *args, data: dict, is_press: bool = False, **kwargs) -> Dict:
+        if not is_press:
+            root = self.init_root(self.model, scope=data, scope_is_pressed=is_press)
+        else:
+            scope = self.dict2scope(root=data, table_name=self.model.name)
+            root = self.init_root(self.model, scope=scope, scope_is_pressed=is_press)
+        return self.obj2json(root, self.model)
+
     def obj2json(self, obj, model: RootModel) -> dict:
         d = {}
         for k in model.fields:

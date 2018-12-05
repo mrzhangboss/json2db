@@ -146,11 +146,11 @@ class TestCommonModelFactory:
 
     def test_add_table_comment(self):
         ## PS: if you want to run this test please set your default_db_url (sqlite not support comment)
-        factory = CommonModelFactory(use_foreign_key=True, column_fmt="UNDERLINE", is_echo=True,
+        factory = CommonModelFactory(use_foreign_key=True, column_fmt="UNDERLINE", is_echo=False,
                                      str2col='VARCHAR(1000)', database='sqlite',
                                      int2col='INTEGER',
-                                     float2col='DECIMAL(10,2)',
-                                     default_db_url="mysql+mysqldb://root:yourpassword@127.0.0.1/test?charset=utf8")
+                                     float2col='DECIMAL(10,2)',)
+                                     # default_db_url="mysql+mysqldb://root:yourpassword@127.0.0.1/test?charset=utf8")
         d = {"aa": 1.0, "bb": 2, "brother": {"name": "jack"}}
 
         model = factory.from_json(data=d, root_name='jackLove')
@@ -160,3 +160,14 @@ class TestCommonModelFactory:
         model.create_tables_in_db()
         model.store(data=d)
         model.delete_tables_in_db()
+
+    def test_convert(self):
+        factory = CommonModelFactory(use_foreign_key=True, column_fmt="UNDERLINE", is_echo=False,
+                                     str2col='VARCHAR(1000)', database='sqlite',
+                                     int2col='INTEGER',
+                                     float2col='DECIMAL(10,2)')
+        for d in self.TEST_DATA:
+            model = factory.from_json(data=d, root_name="data")
+            model.create_tables_in_db()
+            nd = model.convert(data=d)
+            assert nd == d
