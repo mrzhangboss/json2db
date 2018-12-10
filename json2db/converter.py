@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import json
+from decimal import Decimal
 from typing import Optional, Any
 from datetime import datetime
 from .core import ParseDataError
@@ -76,7 +77,11 @@ converter_support = {
     (datetime, str): str,
 
     (dict, str): dict2str,
-    (list, str): list2str
+    (list, str): list2str,
+
+    (Decimal, float): float,
+    (Decimal, str): str,
+    (Decimal, bool): bool,
 
 }
 
@@ -91,5 +96,3 @@ def converter(current_type: type, need_type: type, value: Any) -> Any:
             print(e)
             return None
     raise ParseDataError(f"Current convert not support from {current_type} to {need_type}")
-
-
