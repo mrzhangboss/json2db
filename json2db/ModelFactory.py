@@ -8,6 +8,7 @@ from sqlalchemy import (String, Text, Integer, BigInteger, Float,
                         DECIMAL, SmallInteger, DateTime, Boolean, Column,
                         ForeignKey, create_engine)
 from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.pool import NullPool
 from sqlalchemy.types import TypeEngine
 from sqlalchemy.sql.visitors import VisitableType
 from sqlalchemy.ext.declarative import declarative_base
@@ -219,7 +220,8 @@ class CommonModel(JModel):
         if hasattr(self, '_engine'):
             return self._engine
         else:
-            self._engine = create_engine(self.factory.default_db_url, echo=self.factory.is_echo)
+            # use Null Pool make true when session close connection close
+            self._engine = create_engine(self.factory.default_db_url, echo=self.factory.is_echo, poolclass=NullPool)
             return self._engine
 
     def tostring(self) -> str:
@@ -410,6 +412,7 @@ class CommonModel(JModel):
         session = Session()
         session.add(root)
         session.commit()
+        session.close()
 
     def convert(self, *args, data: dict, is_press: bool = False, **kwargs) -> Dict:
         if not is_press:
@@ -468,6 +471,7 @@ class CommonModel(JModel):
         rlt = []
         for d in query.all():
             rlt.append(self.obj2json(d, self.model))
+        session.close()
         return rlt
 
     def get_primary_row(self):
