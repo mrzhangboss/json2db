@@ -71,6 +71,7 @@ converter_support = {
 
     (str, float): float,
     (bool, float): float,
+    (int, float): float,
 
     (int, str): str,
     (float, str): str,
