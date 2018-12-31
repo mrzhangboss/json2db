@@ -196,7 +196,7 @@ class CommonModelFactory(Factory):
 
         return root
 
-    def from_cache(self, *args, data: Union[dict, str], root_name: str, suffix: Optional[str] = None,
+    def from_cache(self, *args, data: Union[dict, str],
                    **kwargs) -> JModel:
         if isinstance(data, str):
             data = json.loads(data)

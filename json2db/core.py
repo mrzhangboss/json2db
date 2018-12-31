@@ -117,6 +117,6 @@ class Factory:
         raise NotImplementedError
 
     @abstractclassmethod
-    def from_cache(cls, *args, data: Union[dict, str], root_name: str, suffix: Optional[str] = None,
+    def from_cache(cls, *args, data: Union[dict, str],
                    **kwargs) -> JModel:
         raise NotImplementedError
