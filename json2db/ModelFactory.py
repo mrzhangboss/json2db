@@ -460,11 +460,13 @@ class CommonModel(JModel):
     def _get_column(name: str, type_: type,
                     default: Optional[Any] = None,
                     nullable: bool = True,
-                    unique: Optional[bool] = None):
+                    unique: Optional[bool] = None,
+                    comment: Optional[str] = None):
         return Column(name=name, type_=type_,
                       default=default,
                       nullable=nullable,
-                      unique=unique
+                      unique=unique,
+                      comment=comment
                       )
 
     def get_column(self, field: NodeField) -> Column:
@@ -477,7 +479,8 @@ class CommonModel(JModel):
             type_=type_,
             default=field.default,
             nullable=field.nullable,
-            unique=field.unique
+            unique=field.unique,
+            comment=field.comment
         )
 
     def foreign_column_name(self, name: str) -> str:
