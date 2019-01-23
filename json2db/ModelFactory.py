@@ -35,13 +35,20 @@ class NodeField:
 
 @attr.s(auto_attribs=True)
 class RootModel:
+    """
+    In fields,sons,brothers , the dict key meaning the scope name of json data,when save data,
+    we will take value from scope key, when we get data from database , we will take the alias key as output name.
+    They both can be None, then take name from `name` field.
+    Please see issues #37 for more detail
+
+    """
     name: str = attr.ib()
     alias: Optional[str] = None
     table_name: Optional[str] = None
     comment: Optional[str] = None
     fields: Dict[str, NodeField] = attr.Factory(dict)
-    brothers: Dict[str, Any] = attr.Factory(dict)
-    sons: Dict[str, Any] = attr.Factory(dict)
+    brothers: Dict[str, 'RootModel'] = attr.Factory(dict)
+    sons: Dict[str, 'RootModel'] = attr.Factory(dict)
 
 
 class CommonModelFactory(Factory):
@@ -107,6 +114,7 @@ class CommonModelFactory(Factory):
         :param s:
         :return:
         """
+        warnings.warn("deprecated", DeprecationWarning)
         alias = self.ALIAS_PATTERN.findall(s)
         if alias:
             return alias[0]
@@ -336,22 +344,29 @@ class CommonModel(JModel):
             new_value = value
         else:
             new_value = converter(current_type, need_type, value)
-        setattr(obj, name, new_value)
+        if isinstance(obj, dict):
+            obj[field.alias if field.alias else field.name] = new_value
+        else:
+            setattr(obj, name, new_value)
 
     def init_root(self, model: RootModel, scope: dict,
                   debug: bool = False,
-                  scope_is_pressed=False) -> Any:
-        obj = self.db_models[model.name]()
-        for k, v in model.brothers.items():
+                  scope_is_pressed=False,
+                  is_convert=False) -> Any:
+        obj = dict() if is_convert else self.db_models[model.name]()
+        for path, v in model.brothers.items():
             # foreign has same scope with brother
-            path = k if v.alias is None else v.alias
             new_scope = scope if scope_is_pressed else scope[path]
+            n_v = self.init_root(v, new_scope, debug=debug,
+                                 scope_is_pressed=scope_is_pressed,
+                                 is_convert=is_convert)
+            if is_convert:
+                obj[v.alias if v.alias else v.name] = n_v
+            else:
+                setattr(obj, v.name, n_v)
 
-            setattr(obj, k, self.init_root(v, new_scope, debug=debug, scope_is_pressed=scope_is_pressed))
-
-        for k, v in model.fields.items():
+        for path, v in model.fields.items():
             if scope_is_pressed:
-                path = k if v.alias is None else v.alias
                 is_set = False
                 _scope = scope
                 while _scope:
@@ -365,37 +380,34 @@ class CommonModel(JModel):
                                 full_name = model.name + '.' + path
                                 if full_name in _scope:
                                     is_set = True
-                                    self.set_field(obj, k, _scope[full_name], v)
+                                    self.set_field(obj, v.name, _scope[full_name], v)
                                     break
                                 else:
                                     raise ParseDataError(f"Columns Name not find in {model.name} {full_name}")
 
                         else:
                             is_set = True
-                            self.set_field(obj, k, _scope[path], v)
+                            self.set_field(obj, v.name, _scope[path], v)
                             break
                     else:
                         _scope = _scope[self.FATHER_NAME]
                 if not is_set:
-                    self.set_field(obj, k, None, v)
+                    self.set_field(obj, v.name, None, v)
 
             else:
-                self.set_field(obj, k, scope.get(k), v)
+                self.set_field(obj, v.name, scope.get(path), v)
 
         for k, v in model.sons.items():
-            if scope_is_pressed:
-                real_scope_name = v.name if v.alias is None else v.alias
+            sons = scope[k]
+            _sons = []
+            for sc in sons:
+                n_v = self.init_root(v, sc, debug=debug, scope_is_pressed=scope_is_pressed, is_convert=is_convert)
+                _sons.append(n_v)
 
-                assert real_scope_name in scope
-                assert isinstance(scope[real_scope_name], list)
-                for o in scope[real_scope_name]:
-                    n_v = self.init_root(v, o, debug=debug, scope_is_pressed=scope_is_pressed)
-                    getattr(obj, k).append(n_v)
+            if is_convert:
+                obj[v.alias if v.alias else v.name] = _sons
             else:
-                sons = scope[k]
-                for sc in sons:
-                    n_v = self.init_root(v, sc, debug=debug, scope_is_pressed=scope_is_pressed)
-                    getattr(obj, k).append(n_v)
+                setattr(obj, v.name, _sons)
 
         return obj
 
@@ -416,25 +428,24 @@ class CommonModel(JModel):
 
     def convert(self, *args, data: dict, is_press: bool = False, **kwargs) -> Dict:
         if not is_press:
-            root = self.init_root(self.model, scope=data, scope_is_pressed=is_press)
+            root = self.init_root(self.model, scope=data, scope_is_pressed=is_press, is_convert=True)
         else:
             scope = self.dict2scope(root=data, table_name=self.model.name)
-            root = self.init_root(self.model, scope=scope, scope_is_pressed=is_press)
-        return self.obj2json(root, self.model)
+            root = self.init_root(self.model, scope=scope, scope_is_pressed=is_press, is_convert=True)
+        return root
 
     def obj2json(self, obj, model: RootModel) -> dict:
         d = {}
-        for k in model.fields:
-            v = getattr(obj, k)
-            d[k] = v
+        for v in model.fields.values():
+            d[v.alias if v.alias else v.name] = getattr(obj, v.name)
 
-        for k, v in model.sons.items():
+        for v in model.sons.values():
             r = []
-            for x in getattr(obj, k):
+            for x in getattr(obj, v.name):
                 r.append(self.obj2json(x, v))
-            d[k] = r
-        for k, v in model.brothers.items():
-            d[k] = self.obj2json(getattr(obj, k), v)
+            d[v.alias if v.alias else v.name] = r
+        for v in model.brothers.values():
+            d[v.alias if v.alias else v.name] = self.obj2json(getattr(obj, v.name), v)
 
         return d
 
@@ -548,13 +559,13 @@ class CommonModel(JModel):
         cols['__table_args__'] = factory.table_args
         cols[factory.primary_key] = self.get_primary_row()
 
-        for k, v in model.fields.items():
-            cols[k] = self.get_column(v)
+        for v in model.fields.values():
+            cols[v.name] = self.get_column(v)
 
-        for k, v in model.brothers.items():
+        for v in model.brothers.values():
             self.init_one_model(v, use_foreign_key)
-            cols[self.foreign_column_name(k)] = self.get_foreign_column(v.name, v.table_name, use_foreign_key)
-            cols[k] = self.add_relationship(k, model.name, user_foreign_key=use_foreign_key, owed=True)
+            cols[self.foreign_column_name(v.name)] = self.get_foreign_column(v.name, v.table_name, use_foreign_key)
+            cols[v.name] = self.add_relationship(v.name, model.name, user_foreign_key=use_foreign_key, owed=True)
 
         if add_foreign:
             cols[self.foreign_column_name(add_foreign.name)] = self.get_foreign_column(add_foreign.name,
