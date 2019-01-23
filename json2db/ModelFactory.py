@@ -575,9 +575,9 @@ class CommonModel(JModel):
         if add_time_col:
             cols[factory.time_col_name] = self._get_column(factory.time_col_name, DateTime, datetime.now)
 
-        for k, v in model.sons.items():
+        for v in model.sons.values():
             self.init_one_model(v, use_foreign_key, add_foreign=model)
-            cols[k] = self.add_relationship(k, model.name, user_foreign_key=use_foreign_key, owed=False)
+            cols[v.name] = self.add_relationship(v.name, model.name, user_foreign_key=use_foreign_key, owed=False)
 
         table = type(model.name, (self.Base,), cols)
         if model.comment:
