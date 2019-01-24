@@ -377,7 +377,7 @@ class CommonModel(JModel):
                                 raise ParseDataError(f"Columns Name {path} in {model.name} Conflict in {_scope[path]}")
                             else:
                                 print(f"Columns Name {path} in {model.name} Conflict in {_scope[path]}")
-                                full_name = model.name + '.' + path
+                                full_name = _scope[self.SCOPE_NAME] + '.' + path
                                 if full_name in _scope:
                                     is_set = True
                                     self.set_field(obj, v.name, _scope[full_name], v)

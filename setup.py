@@ -8,7 +8,7 @@ from setuptools import Command, setup
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-VERSION = "4.0.1"
+VERSION = "4.0.3"
 REQUIRED = [
     "sqlalchemy", "attrs", "python-dateutil"
 
